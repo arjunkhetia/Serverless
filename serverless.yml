@@ -12,8 +12,7 @@ provider:
   timeout: 10
   versionFunctions: false
   deploymentBucket:
-    name: ottenn
-    # name: serverless-s3-bucket
+    name: serverless-s3-bucket
     skipPolicySetup: true
   httpApi:
     cors: true
@@ -65,10 +64,8 @@ provider:
       roleManagedExternally: true
       format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
   s3:
-    ottenn-bucket:
-      name: ottenn
-    # serverless-s3-bucket:
-    #   name: serverless-s3-bucket
+    serverless-s3-bucket:
+      name: serverless-s3-bucket
   environment: ${file(./env/${opt:stage, self:provider.stage}.json)}
 
 package:
