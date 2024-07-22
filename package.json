@@ -1,0 +1,64 @@
+{
+  "name": "serverless",
+  "version": "1.0.0",
+  "description": "Serverless (Lambda + API Gateway + S3 Storage + Cloudwatch) Template",
+  "type": "module",
+  "config": {
+    "region": "ap-south-1",
+    "stack_name": "serverless-stack",
+    "bucket_name": "bucket",
+    "dev_stack_name": "serverless-dev-stack",
+    "dev_bucket_name": "dev_bucket",
+    "function_name": "serverless-function"
+  },
+  "scripts": {
+    "prisma": "prisma",
+    "prisma_dbpull": "npx prisma db pull",
+    "prisma_dbpush": "npx prisma db push",
+    "prisma_generate_client": "npx prisma generate",
+    "start": "serverless offline start --reloadHandler",
+    "package": "serverless package --region $npm_package_config_region",
+    "deploy": "serverless deploy --region $npm_package_config_region --verbose",
+    "start_dev": "serverless offline start --reloadHandler --stage dev",
+    "package_dev": "serverless package --region $npm_package_config_dev_region --stage dev",
+    "deploy_dev": "serverless deploy --region $npm_package_config_region --stage dev --verbose",
+    "deploy_function": "serverless deploy function --region $npm_package_config_region --function $npm_package_config_function_name --verbose",
+    "deploy_list": "serverless deploy list",
+    "info": "serverless info --verbose",
+    "rollback": "serverless rollback --verbose",
+    "remove": "serverless remove --region $npm_package_config_region --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arjunkhetia/Serverless.git"
+  },
+  "keywords": [
+    "Serverless",
+    "AWS",
+    "Lambda",
+    "API",
+    "Gateway",
+    "S3",
+    "Cloudwatch"
+  ],
+  "author": "Arjun Khetia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arjunkhetia/Serverless/issues"
+  },
+  "homepage": "https://github.com/arjunkhetia/Serverless#readme",
+  "devDependencies": {
+    "serverless-offline": "^13.6.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.616.0",
+    "@aws-sdk/lib-storage": "^3.616.0",
+    "@middy/core": "^5.4.5",
+    "@middy/http-error-handler": "^5.4.5",
+    "@middy/http-header-normalizer": "^5.4.5",
+    "@middy/http-json-body-parser": "^5.4.5",
+    "@middy/http-multipart-body-parser": "^5.4.5",
+    "@middy/validator": "^5.4.5",
+    "@prisma/client": "^5.17.0"
+  }
+}

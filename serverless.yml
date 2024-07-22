@@ -1,0 +1,166 @@
+service: serverless
+
+provider:
+  name: aws
+  stage: api
+  region: ap-south-1
+  stackName: serverless-stack
+  deploymentMethod: changesets
+  disableRollback: false
+  runtime: nodejs20.x
+  memorySize: 128
+  timeout: 10
+  versionFunctions: false
+  deploymentBucket:
+    name: ottenn
+    # name: serverless-s3-bucket
+    skipPolicySetup: true
+  httpApi:
+    cors: true
+  apiName: serverless-api
+  endpointType: REGIONAL
+  iam:
+    role:
+      name: serverless-role
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:*
+            - apigateway:*
+            - s3:*
+            - lambda:*
+            - cloudfront:*
+            - xray:*
+          Resource: "*"
+  stackPolicy:
+    - Effect: Allow
+      Principal: "*"
+      Action: "Update:*"
+      Resource: "*"
+    - Effect: Deny
+      Principal: "*"
+      Resource: "*"
+      Action:
+        - Update:Replace
+        - Update:Delete
+      Condition:
+        StringEquals:
+          ResourceType:
+            - AWS::EC2::Instance
+  tracing:
+    apiGateway: true
+    lambda: true
+  logs:
+    lambda:
+      logFormat: JSON
+      applicationLogLevel: INFO
+      systemLogLevel: INFO
+    httpApi:
+      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+    restApi:
+      accessLogging: true
+      executionLogging: true
+      level: INFO
+      fullExecutionData: true
+      roleManagedExternally: true
+      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+  s3:
+    ottenn-bucket:
+      name: ottenn
+    # serverless-s3-bucket:
+    #   name: serverless-s3-bucket
+  environment: ${file(./env/${opt:stage, self:provider.stage}.json)}
+
+package:
+  individually: true
+  excludeDevDependencies: true
+
+plugins:
+  - serverless-offline
+
+layers:
+  ServerlessLayer:
+    name: serverless-layer
+    path: src/layer
+    description: Serverless layer
+    compatibleRuntimes:
+      - nodejs20.x
+
+functions:
+  UserGetFunction:
+    name: UserGetFunction-${opt:stage, self:provider.stage}
+    handler: src/user/get.handler
+    description: Function to get user information
+    events:
+      - http:
+          path: /user
+          method: GET
+
+  UserPostFunction:
+    name: UserPostFunction-${opt:stage, self:provider.stage}
+    handler: src/user/post.handler
+    description: Function to post user information
+    events:
+      - http:
+          path: /user
+          method: POST
+
+  ValidateRequestFunction:
+    name: ValidateRequestFunction-${opt:stage, self:provider.stage}
+    handler: src/validateRequest.handler
+    description: Function to validate request body
+    events:
+      - http:
+          path: /validate-request
+          method: POST
+
+  JWTAuthorizerFunction:
+    name: JWTAuthorizerFunction-${opt:stage, self:provider.stage}
+    handler: src/authorizer/jwt.handler
+    description: Function to authorize user with JWT
+
+  UserGetWithJWTFunction:
+    name: UserGetWithJWTFunction-${opt:stage, self:provider.stage}
+    handler: src/user/getWithJWT.handler
+    description: Function to get user information with JWT authorization
+    events:
+      - http:
+          path: /user-with-jwt
+          method: GET
+          authorizer:
+            name: JWTAuthorizerFunction
+            type: REQUEST
+
+  FileUploadWithS3Function:
+    name: FileUploadWithS3Function-${opt:stage, self:provider.stage}
+    handler: src/file/uploadWithS3.handler
+    description: Function to upload file to S3
+    events:
+      - http:
+          path: /file-upload-s3
+          method: POST
+
+  GetFromDataBaseFunction:
+    name: GetFromDataBaseFunction-${opt:stage, self:provider.stage}
+    handler: src/database/get.handler
+    description: Function to get data from database
+    events:
+      - http:
+          path: /get-from-db
+          method: GET
+
+  GetDataWithLayerFunction:
+    name: GetDataWithLayerFunction-${opt:stage, self:provider.stage}
+    handler: src/layerdata/getWithLayer.handler
+    description: Function to get data with layer
+    layers:
+      - { Ref: ServerlessLayerLambdaLayer}
+    events:
+      - http:
+          path: /get-with-layer
+          method: GET
+
+outputs:
+  ApiEndpoint:
+    description: API Gateway endpoint URL
+    value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
