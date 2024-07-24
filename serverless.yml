@@ -12,61 +12,27 @@ provider:
   timeout: 10
   versionFunctions: false
   deploymentBucket:
-    name: serverless-s3-bucket
+    name: ${self:provider.environment.S3_DEPLOY_BUCKET_NAME}
     skipPolicySetup: true
   httpApi:
     cors: true
   apiName: serverless-api
   endpointType: REGIONAL
   iam:
-    role:
-      name: serverless-role
-      statements:
-        - Effect: Allow
-          Action:
-            - logs:*
-            - apigateway:*
-            - s3:*
-            - lambda:*
-            - cloudfront:*
-            - xray:*
-          Resource: "*"
-  stackPolicy:
-    - Effect: Allow
-      Principal: "*"
-      Action: "Update:*"
-      Resource: "*"
-    - Effect: Deny
-      Principal: "*"
-      Resource: "*"
-      Action:
-        - Update:Replace
-        - Update:Delete
-      Condition:
-        StringEquals:
-          ResourceType:
-            - AWS::EC2::Instance
+    role: 
+      ${file(./config/role.yml):role}
+  stackPolicy: 
+    ${file(./config/policy.yml):policy}
   tracing:
     apiGateway: true
     lambda: true
   logs:
-    lambda:
-      logFormat: JSON
-      applicationLogLevel: INFO
-      systemLogLevel: INFO
-    httpApi:
-      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
-    restApi:
-      accessLogging: true
-      executionLogging: true
-      level: INFO
-      fullExecutionData: true
-      roleManagedExternally: true
-      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
-  s3:
-    serverless-s3-bucket:
-      name: serverless-s3-bucket
+    ${file(./config/logs.yml):logs}
   environment: ${file(./env/${opt:stage, self:provider.stage}.json)}
+
+resources:
+  Resources:
+    ${file(./config/resources.yml):resources}
 
 package:
   individually: true
@@ -156,6 +122,20 @@ functions:
       - http:
           path: /get-with-layer
           method: GET
+
+  CommonMiddlewareFunction:
+    name: CommonMiddlewareFunction-${opt:stage, self:provider.stage}
+    handler: src/middleware/commonMiddleware.handler
+    description: Common middleware function
+
+  DataWithCommonMiddlewareFunction:
+    name: DataWithCoMmonMiddlewareFunction-${opt:stage, self:provider.stage}
+    handler: src/data/validatedData.handler
+    description: Function to get data with common middleware
+    events:
+      - http:
+          path: /common-middleware
+          method: POST
 
 outputs:
   ApiEndpoint:

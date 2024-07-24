@@ -1,0 +1,24 @@
+resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:provider.environment.S3_BUCKET_NAME}
+      PublicAccessBlockConfiguration:
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*
+            Effect: Allow
+            Principal: "*"
+            Resource:
+              - !GetAtt S3Bucket.Arn
+              - !Join
+                - ""
+                - - !GetAtt S3Bucket.Arn
+                  - /*

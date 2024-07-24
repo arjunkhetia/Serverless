@@ -1,0 +1,15 @@
+policy:
+  - Effect: Allow
+    Principal: "*"
+    Action: "Update:*"
+    Resource: "*"
+  - Effect: Deny
+    Principal: "*"
+    Resource: "*"
+    Action:
+      - Update:Replace
+      - Update:Delete
+    Condition:
+      StringEquals:
+        ResourceType:
+          - AWS::EC2::Instance

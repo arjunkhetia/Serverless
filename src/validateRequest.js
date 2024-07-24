@@ -1,9 +1,10 @@
 import middy from '@middy/core';
-import httpHeaderNormalizer from '@middy/http-header-normalizer'
+import httpHeaderNormalizer from '@middy/http-header-normalizer';
 import httpJsonBodyParser from '@middy/http-json-body-parser';
 import validator from '@middy/validator';
 import { transpileSchema } from '@middy/validator/transpile';
 import httpErrorHandler from '@middy/http-error-handler';
+import createError from 'http-errors';
 
 const schema = {
     type: 'object',
@@ -20,13 +21,24 @@ const schema = {
 };
 
 const lambdaHandler = async (event) => {
-    return {
-        headers: {'Access-Control-Allow-Origin': '*'},
-        statusCode: 200,
-        body: JSON.stringify({
-            message: '✅ Validation successful',
-        }),
-    };
+    if (event.body.username === 'Arjun') {
+        return {
+            headers: {'Access-Control-Allow-Origin': '*'},
+            statusCode: 200,
+            body: JSON.stringify({
+                message: '✅ Validation successful',
+            }),
+        };
+    } else {
+        var err = new createError.InternalServerError('Username is not Arjun');
+        return {
+            headers: {'Access-Control-Allow-Origin': '*'},
+            statusCode: err.statusCode,
+            body: JSON.stringify({
+                message: err.message,
+            }),
+        };
+    }
 }
 
 export const handler = middy(lambdaHandler)
@@ -39,9 +51,9 @@ export const handler = middy(lambdaHandler)
     .use({
         onError: (request) => {
             const error = request.error;
-            if (error.expose && error.statusCode === 400) {
+            if (error.expose) {
                 request.response = {
-                    statusCode: 400,
+                    statusCode: error.statusCode,
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         message: error.message,

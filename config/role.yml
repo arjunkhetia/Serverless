@@ -1,0 +1,12 @@
+role:
+  name: serverless-role
+  statements:
+    - Effect: Allow
+      Resource: "*"
+      Action:
+        - logs:*
+        - apigateway:*
+        - s3:*
+        - lambda:*
+        - cloudfront:*
+        - xray:*

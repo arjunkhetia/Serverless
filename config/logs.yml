@@ -1,0 +1,14 @@
+logs:
+  lambda:
+    logFormat: JSON
+    applicationLogLevel: INFO
+    systemLogLevel: INFO
+  httpApi:
+    format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+  restApi:
+    accessLogging: true
+    executionLogging: true
+    level: INFO
+    fullExecutionData: true
+    roleManagedExternally: true
+    format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","routeKey":"$context.routeKey", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
