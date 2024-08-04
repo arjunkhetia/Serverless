@@ -50,6 +50,16 @@ layers:
       - nodejs20.x
 
 functions:
+  404ErrorFunction:
+    name: 404ErrorFunction-${opt:stage, self:provider.stage}
+    handler: src/404-error.handler
+    description: 404 Error Handler
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+
   UserGetFunction:
     name: UserGetFunction-${opt:stage, self:provider.stage}
     handler: src/user/get.handler
